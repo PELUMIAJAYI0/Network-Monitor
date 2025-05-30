@@ -54,8 +54,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const SPEED_TEST_FILE_SIZE_BYTES = 1000000; // 1MB = 1,000,000 Bytes (or 1024*1024 if you prefer MiB)
 
     // EmailJS Configuration - REPLACE WITH YOUR DETAILS
-    const EMAILJS_SERVICE_ID = 'YOUR_EMAILJS_SERVICE_ID';
-    const EMAILJS_TEMPLATE_ID = 'YOUR_EMAILJS_TEMPLATE_ID';
+    const EMAILJS_SERVICE_ID = 'service_ytoz2q5';
+    const EMAILJS_TEMPLATE_ID = 'template_6tj0qdn';
     // Public Key is initialized in HTML
 
     // --- Utility Functions ---
