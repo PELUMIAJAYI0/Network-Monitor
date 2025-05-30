@@ -1,8 +1,8 @@
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Nicer font */
     margin: 0;
     padding: 20px;
-    background-color: #f4f7f6;
+    background-color: #f0f2f5; /* Lighter background */
     color: #333;
 }
 
@@ -12,59 +12,79 @@ body {
     background-color: #fff;
     padding: 20px;
     border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Softer shadow */
 }
 
 h1, h2 {
-    color: #0056b3;
-    border-bottom: 2px solid #e0e0e0;
+    color: #0056b3; /* Consistent blue */
+    border-bottom: 2px solid #e9ecef; /* Lighter border */
     padding-bottom: 10px;
+    margin-top: 20px; /* Spacing */
+}
+h1:first-child, h2:first-child {
+    margin-top: 0;
+}
+h1 i, h2 i { /* Icon spacing */
+    margin-right: 8px;
 }
 
+
 .status-panel p, .controls label, .controls input {
-    margin-bottom: 10px;
+    margin-bottom: 12px; /* Increased margin */
 }
 
 .status-panel strong {
-    min-width: 150px;
+    min-width: 160px; /* Slightly wider */
     display: inline-block;
 }
 
-.status-unknown { color: #888; font-style: italic; }
-.status-online, .status-ok { color: #28a745; font-weight: bold; }
-.status-offline, .status-issue { color: #dc3545; font-weight: bold; }
-.status-checking { color: #ffc107; }
+/* Status Colors & Icons */
+.status-unknown { color: #6c757d; } /* Bootstrap secondary */
+.status-online, .status-ok { color: #28a745; font-weight: bold; } /* Bootstrap success */
+.status-offline, .status-issue { color: #dc3545; font-weight: bold; } /* Bootstrap danger */
+.status-checking { color: #ffc107; } /* Bootstrap warning */
 
-.controls input[type="text"], .controls input[type="number"] {
-    padding: 8px;
-    border: 1px solid #ccc;
+i.status-unknown, i.status-online, i.status-ok, i.status-offline, i.status-checking {
+    margin-right: 5px;
+    width: 1.2em; /* Ensure icons align a bit */
+    text-align: center;
+}
+
+.controls input[type="text"],
+.controls input[type="email"], /* Added email */
+.controls input[type="number"] {
+    padding: 10px; /* Increased padding */
+    border: 1px solid #ced4da; /* Bootstrap input border */
     border-radius: 4px;
     margin-right: 10px;
-    width: calc(100% - 220px); /* Adjust as needed */
+    box-sizing: border-box; /* Better width management */
 }
-.controls input[type="number"] {
-    width: 60px;
-}
+/* Specific widths */
+.controls input[type="number"]#check-interval { width: 70px; }
 
 
 button {
-    background-color: #007bff;
+    background-color: #007bff; /* Bootstrap primary */
     color: white;
     border: none;
     padding: 10px 15px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 1em;
+    font-size: 0.95em; /* Slightly smaller */
     margin-top: 5px;
+    margin-right: 5px;
+    transition: background-color 0.2s ease-in-out; /* Smooth transition */
+}
+button i {
     margin-right: 5px;
 }
 
 button:hover {
-    background-color: #0056b3;
+    background-color: #0056b3; /* Darker blue */
 }
 
 button:disabled {
-    background-color: #ccc;
+    background-color: #adb5bd; /* Bootstrap disabled grey */
     cursor: not-allowed;
 }
 
@@ -72,27 +92,39 @@ button:disabled {
     width: 100%;
     box-sizing: border-box;
     padding: 10px;
-    border: 1px solid #ccc;
+    border: 1px solid #ced4da;
     border-radius: 4px;
     margin-bottom: 10px;
-    background-color: #f9f9f9;
-    font-family: monospace;
+    background-color: #f8f9fa; /* Lighter grey */
+    font-family: 'Courier New', Courier, monospace;
+    min-height: 150px; /* Ensure it's a decent size */
 }
 
 #event-log {
-    max-height: 200px;
+    max-height: 250px; /* Increased height */
     overflow-y: auto;
-    border: 1px solid #eee;
+    border: 1px solid #e9ecef;
     padding: 10px;
     background-color: #fdfdfd;
     font-size: 0.9em;
+    border-radius: 4px; /* Rounded corners */
 }
 
 #event-log p {
-    margin: 5px 0;
+    margin: 0 0 5px 0; /* Compact spacing */
     padding-bottom: 5px;
     border-bottom: 1px dotted #eee;
+    word-break: break-word; /* Prevent overflow */
 }
 #event-log p:last-child {
     border-bottom: none;
+}
+
+/* Styling for speed test button next to text */
+#speed-test-result {
+    margin-right: 10px;
+}
+#test-speed-btn {
+    padding: 5px 10px; /* Smaller button */
+    font-size: 0.85em;
 }
