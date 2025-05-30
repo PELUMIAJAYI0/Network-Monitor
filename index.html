@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Monitor</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Network Monitor</h1>
+
+        <div class="status-panel">
+            <h2>Current Status</h2>
+            <p><strong>Overall Status:</strong> <span id="overall-status" class="status-unknown">Unknown</span></p>
+            <p><strong>Browser Online:</strong> <span id="browser-status" class="status-unknown">Unknown</span></p>
+            <p><strong>Connectivity Check:</strong> <span id="connectivity-status" class="status-unknown">Not Running</span></p>
+            <p><strong>Connected Since:</strong> <span id="connect-time">N/A</span></p>
+            <p><strong>Last Disconnected:</strong> <span id="disconnect-time">N/A</span></p>
+            <p><strong>Last Check:</strong> <span id="last-check-time">N/A</span></p>
+        </div>
+
+        <div class="controls">
+            <label for="target-url">Target URL for Connectivity Check:</label>
+            <input type="text" id="target-url" value="https://www.google.com/favicon.ico">
+            <label for="check-interval">Check Interval (seconds):</label>
+            <input type="number" id="check-interval" value="10" min="5">
+            <button id="start-monitoring">Start Monitoring</button>
+            <button id="stop-monitoring" disabled>Stop Monitoring</button>
+        </div>
+        
+        <div class="report-panel">
+            <h2>Session Report</h2>
+            <textarea id="report-log" rows="10" readonly></textarea>
+            <button id="generate-report-email" disabled>Generate Email Report</button>
+        </div>
+        
+        <div class="log-panel">
+            <h2>Event Log</h2>
+            <div id="event-log"></div>
+        </div>
+
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
