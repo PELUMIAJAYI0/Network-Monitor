@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,28 +11,29 @@
     <!-- EmailJS SDK -->
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <script type="text/javascript">
-        (function(){
+        (function () {
             // REPLACE WITH YOUR ACTUAL EMAILJS PUBLIC KEY
             emailjs.init({ publicKey: "CUeA-u9B6S1FUq8mL" });
         })();
     </script>
 </head>
+
 <body>
     <div class="container">
         <h1><i class="fas fa-network-wired"></i> Network Monitor Pro</h1>
 
         <div class="controls">
             <label for="user-email-input">Your Email for Reports:</label>
-            <input type="email" id="user-email-input" placeholder="your.email@example.com" style="width: calc(100% - 20px); margin-bottom:10px;">
+            <input type="email" id="user-email-input" placeholder="your.email@example.com"
+                style="width: calc(100% - 20px); margin-bottom:10px;">
 
             <label for="target-urls-input">Target URLs (comma separated):</label>
-<input type="text" id="target-urls-input" placeholder="e.g. google.com, 1.1.1.1, my-internal-server.com" style="width: calc(100% - 20px); margin-bottom: 10px;">
-<p style="font-size: 0.8em; color: #666; margin-top: -5px; margin-bottom: 10px;">
-    <i class="fas fa-info-circle"></i> Enter websites or IPs to ping. Separate multiple targets with commas.
-</p>
-            <!-- Actual target URL input is now managed by CHECK_TARGET_URLS array in JS -->
-            <!-- <input type="text" id="target-url" value="https://www.google.com/favicon.ico"> -->
-
+            <input type="text" id="target-urls-input" placeholder="e.g. google.com, 1.1.1.1, my-internal-server.com"
+                style="width: calc(100% - 20px); margin-bottom: 10px;">
+            <p style="font-size: 0.8em; color: #666; margin-top: -5px; margin-bottom: 10px;">
+                <i class="fas fa-info-circle"></i> Enter websites or IPs to ping. Separate multiple targets with commas.
+            </p>
+            
             <label for="check-interval">Check Interval (seconds):</label>
             <input type="number" id="check-interval" value="10" min="5" style="width: 60px;">
 
@@ -41,22 +43,30 @@
 
         <div class="status-panel">
             <h2><i class="fas fa-tachometer-alt"></i> Current Status</h2>
-            <p><strong>Overall Status:</strong> <i id="overall-status-icon" class="fas fa-question-circle status-unknown"></i> <span id="overall-status" class="status-unknown">Unknown</span></p>
-            <p><strong>Browser Online:</strong> <i id="browser-status-icon" class="fas fa-question-circle status-unknown"></i> <span id="browser-status" class="status-unknown">Unknown</span></p>
-            <p><strong>Connectivity Check:</strong> <i id="connectivity-status-icon" class="fas fa-question-circle status-unknown"></i> <span id="connectivity-status" class="status-unknown">Not Running</span></p>
+            <p><strong>Overall Status:</strong> <i id="overall-status-icon"
+                    class="fas fa-question-circle status-unknown"></i> <span id="overall-status"
+                    class="status-unknown">Unknown</span></p>
+            <p><strong>Browser Online:</strong> <i id="browser-status-icon"
+                    class="fas fa-question-circle status-unknown"></i> <span id="browser-status"
+                    class="status-unknown">Unknown</span></p>
+            <p><strong>Connectivity Check:</strong> <i id="connectivity-status-icon"
+                    class="fas fa-question-circle status-unknown"></i> <span id="connectivity-status"
+                    class="status-unknown">Not Running</span></p>
             <p><strong>Connected Since:</strong> <span id="connect-time">N/A</span></p>
             <p><strong>Last Disconnected:</strong> <span id="disconnect-time">N/A</span></p>
             <p><strong>Last Check:</strong> <span id="last-check-time">N/A</span></p>
             <p>
                 <strong>Est. Speed:</strong> <span id="speed-test-result">N/A</span>
-                <button id="test-speed-btn" title="Test Download Speed"><i class="fas fa-rocket"></i> Test Speed</button>
+                <button id="test-speed-btn" title="Test Download Speed"><i class="fas fa-rocket"></i> Test
+                    Speed</button>
             </p>
         </div>
 
         <div class="report-panel">
             <h2><i class="fas fa-file-alt"></i> Session Report</h2>
             <textarea id="report-log" rows="10" readonly></textarea>
-            <button id="generate-report-email" disabled><i class="fas fa-envelope"></i> Send Manual Email Report</button>
+            <button id="generate-report-email" disabled><i class="fas fa-envelope"></i> Send Manual Email
+                Report</button>
             <button id="export-log-btn" disabled><i class="fas fa-download"></i> Export Event Log</button>
         </div>
 
@@ -69,4 +79,5 @@
     <audio id="alert-sound" src="alert.mp3" preload="auto"></audio> <!-- Add your alert.mp3 file -->
     <script src="script.js"></script>
 </body>
+
 </html>
