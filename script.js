@@ -36,15 +36,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Connectivity Check Targets (Primary first)
     // IMPORTANT: If you use internal URLs, ensure they have CORS enabled if this page is served from a different origin.
-    const CHECK_TARGET_URLS = [
-        "https://www.google.com/generate_204",      // Google's 204 endpoint is good for this
-        "https://www.cloudflare.com/cdn-cgi/trace", // Cloudflare returns small text
-        "https://1.1.1.1/favicon.ico",              // Cloudflare DNS
-        // Add your internal /healthcheck URL here if available
-        // e.g., "http://your-internal-server/healthcheck"
-    ];
-    let currentTargetUrlIndex = 0;
-    targetUrlDisplayEl.value = CHECK_TARGET_URLS.join(', '); // Display them
+   // Default targets if user hasn't set any
+let checkTargetUrls = [
+    "https://www.google.com/generate_204",
+    "https://www.cloudflare.com/cdn-cgi/trace",
+    "https://1.1.1.1/favicon.ico"
+];
+let currentTargetUrlIndex = 0;
+
+// Update the UI reference to match our new HTML ID
+const targetUrlInputEl = document.getElementById('target-urls-input');
+// Set the initial value of the input to our current list
+targetUrlInputEl.value = checkTargetUrls.join(', ');
 
     // Speed Test Configuration
     // CHOOSE A RELIABLE FILE AND GET ITS ACCURATE SIZE
@@ -174,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return; // No need to proceed if browser itself is offline
         }
 
-        const targetUrl = CHECK_TARGET_URLS[currentTargetUrlIndex];
+        const targetUrl = checkTargetUrls[currentTargetUrlIndex];
         lastCheckTimeEl.textContent = getCurrentTimestamp();
         updateConnectivityStatusUI('checking', `Pinging ${targetUrl.split('/')[2]}...`);
 
@@ -204,13 +207,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             clearTimeout(timeoutId); // Clear timeout if error occurred before it fired
             addEventLog(`Check to ${targetUrl.split('/')[2]} FAILED. ${error.name === 'AbortError' ? 'Timeout' : error.message}`, 'error');
-            currentTargetUrlIndex = (currentTargetUrlIndex + 1) % CHECK_TARGET_URLS.length;
+            currentTargetUrlIndex = (currentTargetUrlIndex + 1) % checkTargetUrls.length;
 
             if (currentTargetUrlIndex === 0) { // Cycled through all, all failed
                 updateConnectivityStatusUI('issue', 'All Targets Unreachable');
                 // This is a more critical failure state, updateOverallStatus will handle notification
             } else {
-                addEventLog(`Trying next target: ${CHECK_TARGET_URLS[currentTargetUrlIndex].split('/')[2]}`, 'warning');
+                addEventLog(`Trying next target: ${checkTargetUrls[currentTargetUrlIndex].split('/')[2]}`, 'warning');
                 updateConnectivityStatusUI('issue', `Target ${targetUrl.split('/')[2]} Failed. Trying next.`);
                 // Optionally, trigger an immediate check of the next URL rather than waiting for the interval
                 // setTimeout(checkConnectivity, 1000); // Be cautious with recursive calls
@@ -241,37 +244,70 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function startMonitoring() {
-        if (monitoringIntervalId) return;
+    // 1. Audio Fix (from previous step)
+    alertSound.play().catch(e => console.warn("Audio init failed:", e));
+    setTimeout(() => alertSound.pause(), 10);
 
-        saveConfiguration(); // Save current settings like interval and email
-        addEventLog("Monitoring started.", "info");
-        startMonitoringBtn.disabled = true;
-        stopMonitoringBtn.disabled = false;
-        userEmailInput.disabled = true;
-        checkIntervalInput.disabled = true;
-        generateReportEmailBtn.disabled = false; // Enable manual report button
-        exportLogBtn.disabled = false; // Enable export log button
+    if (monitoringIntervalId) return;
 
-        connectionStartTime = new Date(); // Reset/set connection start time
-        localStorage.setItem(LOG_PREFIX + 'connectionStartTime', connectionStartTime.toISOString());
-        connectTimeEl.textContent = connectionStartTime.toLocaleString();
-        disconnectTimeEl.textContent = "N/A";
-        lastDisconnectionTime = null; // Reset last disconnect time
-        isEffectivelyOnline = false; // Reset effective online state, will be set by first check
+    // 2. PROCESS USER INPUT FOR URLS
+    const rawInput = targetUrlInputEl.value;
+    
+    // Split by comma, trim whitespace, and filter empty strings
+    const customList = rawInput.split(',')
+        .map(url => url.trim())
+        .filter(url => url.length > 0);
 
-        // Initial status updates
-        handleOnlineStatusChange(); // Sets browser status and potentially calls updateOverallStatus
-        checkConnectivity(); // Perform initial check, which also calls updateOverallStatus
-
-        const intervalSeconds = parseInt(checkIntervalInput.value, 10);
-        monitoringIntervalId = setInterval(checkConnectivity, intervalSeconds * 1000);
+    if (customList.length === 0) {
+        alert("Please enter at least one valid URL or IP to monitor.");
+        return;
     }
 
+    // specific logic to add http/https if missing
+    checkTargetUrls = customList.map(url => {
+        // If user typed "google.com", add "https://"
+        if (!/^https?:\/\//i.test(url)) {
+            return 'https://' + url;
+        }
+        return url;
+    });
+
+    // Update input with the cleaned list so user sees what's happening
+    targetUrlInputEl.value = checkTargetUrls.join(', ');
+
+    saveConfiguration(); // Save these new URLs for next time!
+
+    addEventLog("Monitoring started with targets: " + checkTargetUrls.length, "info");
+    
+    // UI Updates
+    startMonitoringBtn.disabled = true;
+    stopMonitoringBtn.disabled = false;
+    userEmailInput.disabled = true;
+    checkIntervalInput.disabled = true;
+    targetUrlInputEl.disabled = true; // Lock the URL input while running
+    generateReportEmailBtn.disabled = false;
+    exportLogBtn.disabled = false;
+
+    connectionStartTime = new Date();
+    localStorage.setItem(LOG_PREFIX + 'connectionStartTime', connectionStartTime.toISOString());
+    connectTimeEl.textContent = connectionStartTime.toLocaleString();
+    disconnectTimeEl.textContent = "N/A";
+    lastDisconnectionTime = null;
+    isEffectivelyOnline = false;
+
+    handleOnlineStatusChange();
+    checkConnectivity();
+
+    const intervalSeconds = parseInt(checkIntervalInput.value, 10);
+    monitoringIntervalId = setInterval(checkConnectivity, intervalSeconds * 1000);
+}
     function stopMonitoring(reason = "Manual Stop by User", autoSend = true) {
         if (!monitoringIntervalId && reason === "Manual Stop by User") { // Prevent multiple stops if already stopped
             addEventLog("Monitoring is already stopped.", "info");
             return;
         }
+
+        targetUrlInputEl.disabled = false; // Enable editing
 
         const wasMonitoring = !!monitoringIntervalId;
         clearInterval(monitoringIntervalId);
@@ -338,7 +374,7 @@ document.addEventListener('DOMContentLoaded', () => {
         report += `Session End/Report Time: ${endTime.toLocaleString()}\n`;
         report += `Reason for Report: ${reasonForReport}\n\n`;
 
-        report += `Target URLs Checked (Primary First):\n${CHECK_TARGET_URLS.map(u => ` - ${u}`).join('\n')}\n\n`;
+        report += `Target URLs Checked (Primary First):\n${checkTargetUrls.map(u => ` - ${u}`).join('\n')}\n\n`;
         report += `Check Interval: ${checkIntervalInput.value} seconds\n`;
         report += `Browser Status at End: ${navigator.onLine ? 'Online' : 'Offline'}\n`;
         report += `Last Successful Connectivity Check: ${lastSuccessfulCheckTime ? lastSuccessfulCheckTime.toLocaleString() : 'N/A'}\n\n`;
@@ -461,34 +497,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Config Persistence ---
-    function loadConfiguration() {
-        const savedInterval = localStorage.getItem(LOG_PREFIX + 'checkInterval');
-        if (savedInterval) checkIntervalInput.value = savedInterval;
+function loadConfiguration() {
+    const savedInterval = localStorage.getItem(LOG_PREFIX + 'checkInterval');
+    if (savedInterval) checkIntervalInput.value = savedInterval;
 
-        const savedUserEmail = localStorage.getItem(LOG_PREFIX + 'userEmail');
-        if (savedUserEmail) userEmailInput.value = savedUserEmail;
+    const savedUserEmail = localStorage.getItem(LOG_PREFIX + 'userEmail');
+    if (savedUserEmail) userEmailInput.value = savedUserEmail;
 
-        // Load connection start time if page was reloaded during monitoring
-        const storedStartTime = localStorage.getItem(LOG_PREFIX + 'connectionStartTime');
-        if (storedStartTime) {
-            // Check if this is a fresh load or a reload of an active session
-            // This logic might need refinement based on how you want to handle reloads.
-            // For now, we'll only use it if monitoring wasn't explicitly stopped.
-            // if (localStorage.getItem(LOG_PREFIX + 'monitoringActive') === 'true') {
-            //    connectionStartTime = new Date(storedStartTime);
-            //    connectTimeEl.textContent = connectionStartTime.toLocaleString();
-            //    addEventLog("Resumed session, connection start time loaded.", "info");
-            // }
-        }
-        addEventLog("Configuration loaded.", "info");
+    // Load saved URLs
+    const savedUrls = localStorage.getItem(LOG_PREFIX + 'targetUrls');
+    if (savedUrls) {
+        targetUrlInputEl.value = savedUrls;
+        // Update our internal list variable immediately so it matches UI
+        checkTargetUrls = savedUrls.split(',').map(u => u.trim());
     }
 
-    function saveConfiguration() {
-        localStorage.setItem(LOG_PREFIX + 'checkInterval', checkIntervalInput.value);
-        localStorage.setItem(LOG_PREFIX + 'userEmail', userEmailInput.value);
-        // localStorage.setItem(LOG_PREFIX + 'monitoringActive', !!monitoringIntervalId);
-        addEventLog("Configuration saved.", "info");
-    }
+    addEventLog("Configuration loaded.", "info");
+}
+
+function saveConfiguration() {
+    localStorage.setItem(LOG_PREFIX + 'checkInterval', checkIntervalInput.value);
+    localStorage.setItem(LOG_PREFIX + 'userEmail', userEmailInput.value);
+    // Save the custom URL list
+    localStorage.setItem(LOG_PREFIX + 'targetUrls', targetUrlInputEl.value);
+    addEventLog("Configuration saved.", "info");
+}
 
     // --- Log Export ---
     function exportEventLog() {

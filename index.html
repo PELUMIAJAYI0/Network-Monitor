@@ -24,8 +24,11 @@
             <label for="user-email-input">Your Email for Reports:</label>
             <input type="email" id="user-email-input" placeholder="your.email@example.com" style="width: calc(100% - 20px); margin-bottom:10px;">
 
-            <label for="target-url-display">Target URLs for Check (Primary First):</label>
-            <input type="text" id="target-url-display" readonly style="background-color: #e9ecef; width: calc(100% - 20px);">
+            <label for="target-urls-input">Target URLs (comma separated):</label>
+<input type="text" id="target-urls-input" placeholder="e.g. google.com, 1.1.1.1, my-internal-server.com" style="width: calc(100% - 20px); margin-bottom: 10px;">
+<p style="font-size: 0.8em; color: #666; margin-top: -5px; margin-bottom: 10px;">
+    <i class="fas fa-info-circle"></i> Enter websites or IPs to ping. Separate multiple targets with commas.
+</p>
             <!-- Actual target URL input is now managed by CHECK_TARGET_URLS array in JS -->
             <!-- <input type="text" id="target-url" value="https://www.google.com/favicon.ico"> -->
 
