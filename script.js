@@ -24,6 +24,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const speedTestResultEl = document.getElementById('speed-test-result');
     const alertSound = document.getElementById('alert-sound');
 
+    const aiSummaryBtn = document.getElementById('ai-summary-btn');
+
     // --- State & Configuration ---
     let monitoringIntervalId = null;
     let connectionStartTime = null;
@@ -287,6 +289,7 @@ targetUrlInputEl.value = checkTargetUrls.join(', ');
     targetUrlInputEl.disabled = true; // Lock the URL input while running
     generateReportEmailBtn.disabled = false;
     exportLogBtn.disabled = false;
+    aiSummaryBtn.disabled = false;
 
     connectionStartTime = new Date();
     localStorage.setItem(LOG_PREFIX + 'connectionStartTime', connectionStartTime.toISOString());
@@ -319,6 +322,7 @@ targetUrlInputEl.value = checkTargetUrls.join(', ');
         stopMonitoringBtn.disabled = true;
         userEmailInput.disabled = false;
         checkIntervalInput.disabled = false;
+        aiSummaryBtn.disabled = false;
         // generateReportEmailBtn remains enabled
         // exportLogBtn remains enabled
 
@@ -444,6 +448,86 @@ targetUrlInputEl.value = checkTargetUrls.join(', ');
         addEventLog("Manual email report link generated for user to send.", "info");
     }
 
+    // --- Gemini AI Analysis Function ---
+    async function getGeminiAnalysis() {
+        // 1. Lock the UI so user doesn't click twice
+        aiSummaryBtn.disabled = true;
+        aiSummaryBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Thinking...';
+        reportLogEl.value = "🤖 Contacting Google Gemini... Please wait...";
+        addEventLog("Requesting AI analysis from Gemini...", "info");
+
+        // ---------------------------------------------------------
+        // PASTE YOUR API KEY INSIDE THE QUOTES BELOW
+        const GEMINI_API_KEY = "AIzaSyBjN58BMvhVuIGqDb-7UtmUdJ8OqBhu4MM"; 
+        // ---------------------------------------------------------
+
+        const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+        // 2. Grab the logs
+        const logEntries = Array.from(eventLogEl.children)
+            .map(p => p.textContent)
+            .reverse(); // Oldest to newest
+
+        if (logEntries.length === 0) {
+            reportLogEl.value = "No events to analyze yet.";
+            aiSummaryBtn.disabled = false;
+            aiSummaryBtn.innerHTML = '<i class="fas fa-robot"></i> Ask Gemini AI';
+            return;
+        }
+
+        // 3. Create the prompt
+        const promptText = `
+            You are a sophisticated Network Analysis Tool. 
+            Analyze the following connection event log. 
+            
+            1. Provide a 1-sentence summary of the overall connection stability.
+            2. List the specific times connectivity was lost (if any).
+            3. If there were errors, explain the likely technical cause (e.g., "DNS failure", "Local Router issue").
+            4. Suggest 1 troubleshooting step based on these logs.
+
+            EVENT LOG:
+            ${logEntries.join('\n')}
+        `;
+
+        // 4. Prepare data for Gemini API
+        const requestData = {
+            contents: [{
+                parts: [{ text: promptText }]
+            }]
+        };
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(requestData)
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error.message || "API Error");
+            }
+
+            const data = await response.json();
+            
+            // 5. Extract the answer
+            const aiResponseText = data.candidates[0].content.parts[0].text;
+
+            // 6. Show it to the user
+            reportLogEl.value = "=== 🤖 GEMINI AI ANALYSIS ===\n\n" + aiResponseText;
+            addEventLog("Gemini analysis received successfully.", "success");
+
+        } catch (error) {
+            console.error("Gemini Error:", error);
+            reportLogEl.value = "❌ Error getting AI analysis.\nCheck the console (F12) for details.\n\nError: " + error.message;
+            addEventLog("Gemini analysis failed.", "error");
+        } finally {
+            // 7. Reset the button
+            aiSummaryBtn.disabled = false;
+            aiSummaryBtn.innerHTML = '<i class="fas fa-robot"></i> Ask Gemini AI';
+        }
+    }
+
     // --- Speed Test ---
     async function testDownloadSpeed() {
         addEventLog("Starting download speed test...", "info");
@@ -560,6 +644,7 @@ function saveConfiguration() {
     generateReportEmailBtn.addEventListener('click', manuallyGenerateEmail);
     exportLogBtn.addEventListener('click', exportEventLog);
     testSpeedBtn.addEventListener('click', testDownloadSpeed);
+    aiSummaryBtn.addEventListener('click', getGeminiAnalysis);
 
     // Save config on input change if needed (optional, good for persistence if user changes then refreshes)
     checkIntervalInput.addEventListener('change', saveConfiguration);
